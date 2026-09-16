@@ -1,4 +1,5 @@
 import { after, NextResponse } from 'next/server';
+import { agentCallsEnabled } from '@/lib/agent/provider';
 import { getEnv } from '@/lib/env';
 import { dispatchNewLead } from '@/lib/intake/dispatch';
 import { createRateLimiter } from '@/lib/intake/rate-limit';
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
     const appUrl = env.APP_URL ?? new URL(request.url).origin;
     after(() => dispatchNewLead({ env, store, lead, id, createdAt, appUrl }));
 
-    return NextResponse.json({ ok: true, id, agentCalls: Boolean(env.AGENT_WEBHOOK_URL) });
+    return NextResponse.json({ ok: true, id, agentCalls: agentCallsEnabled(env) });
   } catch (error) {
     console.error('[intake]', error);
     return NextResponse.json(

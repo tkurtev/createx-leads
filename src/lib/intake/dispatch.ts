@@ -1,3 +1,6 @@
+import { startAgentCall } from '@/lib/agent/dial';
+import { callMode, getCallProvider } from '@/lib/agent/provider';
+import type { CallEnded } from '@/lib/agent/types';
 import type { Env } from '@/lib/env';
 import { SYSTEM_AUTHOR } from '@/lib/leads/types';
 import { notifyAgent } from '@/lib/notify/agent-webhook';
@@ -8,7 +11,16 @@ import type { IntakeLead } from './schema';
 
 type DispatchEnv = Pick<
   Env,
-  'RESEND_API_KEY' | 'NOTIFY_EMAIL_TO' | 'NOTIFY_EMAIL_FROM' | 'AGENT_WEBHOOK_URL' | 'AGENT_WEBHOOK_SECRET'
+  | 'RESEND_API_KEY'
+  | 'NOTIFY_EMAIL_TO'
+  | 'NOTIFY_EMAIL_FROM'
+  | 'AGENT_WEBHOOK_URL'
+  | 'AGENT_WEBHOOK_SECRET'
+  | 'AGENT_NAME'
+  | 'CALL_PROVIDER'
+  | 'VAPI_API_KEY'
+  | 'VAPI_ASSISTANT_ID'
+  | 'VAPI_PHONE_NUMBER_ID'
 >;
 
 type Dispatch = {
@@ -21,12 +33,22 @@ type Dispatch = {
   fetchImpl?: typeof fetch;
 };
 
+export type DispatchResult = { sent: number; problems: string[]; simulated?: CallEnded };
+
 /**
- * After a form lead is saved: email the team and hand the lead to the AI agent,
- * in parallel. Whatever fails is written to the lead's history, so the team sees
+ * After a form lead is saved: email the team and get someone calling, in
+ * parallel. Whatever fails is written to the lead's history, so the team sees
  * it in the app instead of it vanishing into server logs.
  */
-export async function dispatchNewLead({ env, store, lead, id, createdAt, appUrl, fetchImpl = fetch }: Dispatch) {
+export async function dispatchNewLead({
+  env,
+  store,
+  lead,
+  id,
+  createdAt,
+  appUrl,
+  fetchImpl = fetch,
+}: Dispatch): Promise<DispatchResult> {
   const url = leadUrl(appUrl, id);
   const jobs: { label: string; run: () => Promise<unknown> }[] = [];
 
@@ -42,7 +64,31 @@ export async function dispatchNewLead({ env, store, lead, id, createdAt, appUrl,
     });
   }
 
-  if (env.AGENT_WEBHOOK_URL) {
+  const provider = getCallProvider(env, fetchImpl);
+  let simulated: CallEnded | undefined;
+
+  if (provider) {
+    jobs.push({
+      label: 'AI агентът не успя да звънне',
+      run: async () => {
+        const result = await startAgentCall({
+          store,
+          provider,
+          agentName: env.AGENT_NAME,
+          target: {
+            leadId: id,
+            name: lead.name,
+            phone: lead.phone,
+            email: lead.email,
+            interest: lead.interest,
+            message: lead.message,
+            source: lead.source,
+          },
+        });
+        simulated = result.simulated;
+      },
+    });
+  } else if (callMode(env) === 'webhook' && env.AGENT_WEBHOOK_URL) {
     jobs.push({
       label: 'AI агентът не получи лийда и няма да звънне',
       run: () =>
@@ -71,5 +117,5 @@ export async function dispatchNewLead({ env, store, lead, id, createdAt, appUrl,
       .appendActivity({ leadId: id, leadName: lead.name, author: SYSTEM_AUTHOR, type: 'comment', text })
       .catch((error) => console.error('[intake] could not record the problem', error));
   }
-  return { sent: jobs.length - problems.length, problems };
+  return { sent: jobs.length - problems.length, problems, ...(simulated ? { simulated } : {}) };
 }

@@ -37,6 +37,26 @@ const schema = z
     // resend.dev works without a verified domain, but only delivers to the Resend account owner.
     NOTIFY_EMAIL_FROM: z.string().default('CreateX Leads <onboarding@resend.dev>'),
 
+    // Who calls a fresh form lead:
+    //   vapi    - this app places the call through Vapi
+    //   webhook - the lead is POSTed to AGENT_WEBHOOK_URL and that agent calls
+    //   log     - local testing: a fake call with a fake conversation
+    //   off     - nobody calls automatically
+    // Left empty it keeps whatever was configured before: webhook if there is one.
+    CALL_PROVIDER: z.enum(['off', 'vapi', 'webhook', 'log']).optional(),
+    VAPI_API_KEY: z.string().optional(),
+    // The assistant configured in the Vapi dashboard: it owns the script and the voice.
+    VAPI_ASSISTANT_ID: z.string().optional(),
+    // The number Vapi calls from.
+    VAPI_PHONE_NUMBER_ID: z.string().optional(),
+    // Vapi sends this back as the "x-vapi-secret" header on every webhook.
+    VAPI_WEBHOOK_SECRET: z.string().optional(),
+
+    // Reading the call afterwards (summary, qualification, next steps). Empty = the
+    // provider's own summary is used instead.
+    ANTHROPIC_API_KEY: z.string().optional(),
+    ANALYSIS_MODEL: z.string().default('claude-opus-5'),
+
     // AI calling agent: every form lead is POSTed here. Empty = no automatic calls.
     AGENT_WEBHOOK_URL: z.string().url().optional(),
     AGENT_WEBHOOK_SECRET: z.string().optional(),
@@ -55,6 +75,14 @@ const schema = z
     }
     if (env.RESEND_API_KEY && env.NOTIFY_EMAIL_TO.length === 0) {
       ctx.addIssue({ code: 'custom', path: ['NOTIFY_EMAIL_TO'], message: 'на кого да пращаме известията за нови лийдове' });
+    }
+    if (env.CALL_PROVIDER === 'vapi') {
+      for (const key of ['VAPI_API_KEY', 'VAPI_ASSISTANT_ID', 'VAPI_PHONE_NUMBER_ID'] as const) {
+        if (!env[key]) ctx.addIssue({ code: 'custom', path: [key], message: `${key} липсва` });
+      }
+    }
+    if (env.CALL_PROVIDER === 'webhook' && !env.AGENT_WEBHOOK_URL) {
+      ctx.addIssue({ code: 'custom', path: ['AGENT_WEBHOOK_URL'], message: 'къде да изпратим лийда за обаждане' });
     }
     if (env.EMAIL_TRANSPORT === 'smtp') {
       for (const key of ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'EMAIL_FROM'] as const) {
