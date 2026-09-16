@@ -26,6 +26,24 @@ describe('currentStatus', () => {
     expect(currentStatus([act('a', '2026-01-01T00:00:00Z', { author: 'Система' })])).toBe('new');
   });
 
+  it('stays "new" while an AI call is still ringing, so the lead keeps showing up to call', () => {
+    const ringing = act('a', '2026-01-01T00:00:00Z', {
+      author: 'AI агент',
+      type: 'call',
+      call: { provider: 'vapi', state: 'queued' },
+    });
+    expect(currentStatus([ringing])).toBe('new');
+  });
+
+  it('counts a finished AI call as contact even when it set no status', () => {
+    const done = act('a', '2026-01-01T00:00:00Z', {
+      author: 'AI агент',
+      type: 'call',
+      call: { provider: 'vapi', state: 'ended', reached: true },
+    });
+    expect(currentStatus([done])).toBe('in_progress');
+  });
+
   it('takes the latest status from calls or manual changes, regardless of order', () => {
     const list = [
       act('b', '2026-01-03T00:00:00Z', { type: 'call', status: 'interested' }),

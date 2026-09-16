@@ -1,6 +1,13 @@
 import { SYSTEM_AUTHOR, type Activity, type Lead, type LeadStatus } from './types';
 
 /**
+ * Someone actually reached out. A system note (say, a failed notification) is not
+ * contact, and neither is an AI call that is still ringing: if its result never
+ * arrives, the lead has to stay in the call list instead of quietly looking handled.
+ */
+const isContact = (activity: Activity) => activity.author !== SYSTEM_AUTHOR && activity.call?.state !== 'queued';
+
+/**
  * Latest explicit status wins. Without one, a lead the team already wrote notes
  * about in the sheet has clearly been contacted, so it is "in progress", not "new".
  */
@@ -9,8 +16,7 @@ export function currentStatus(activities: Activity[], hasSheetNotes = false): Le
     .filter((a) => a.status)
     .sort((a, b) => b.at.localeCompare(a.at))[0];
   if (latest?.status) return latest.status;
-  // A system note (say, a failed notification) doesn't mean anyone talked to the lead.
-  if (hasSheetNotes || activities.some((a) => a.author !== SYSTEM_AUTHOR)) return 'in_progress';
+  if (hasSheetNotes || activities.some(isContact)) return 'in_progress';
   return 'new';
 }
 
