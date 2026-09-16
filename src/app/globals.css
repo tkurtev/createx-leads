@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+
+  /* CreateX brand, sampled from createx.bg and the logo */
+  --color-brand-pink: #f0105f;
+  --color-brand-purple: #7b3ae6;
+  --color-brand-blue: #2b58f8;
+  --color-brand-navy: #0b0c22;
+
+  --color-background: #f6f5fb;
+  --color-surface: #ffffff;
+  --color-foreground: #0b0c22;
+  --color-muted: #5b5d73;
+  --color-subtle: #8a8ca3;
+  --color-border: #e8e6f1;
+  --color-field: #f0eff6;
+
+  --color-primary: #2b58f8;
+  --color-primary-hover: #1d44d8;
+  --color-primary-soft: #ebefff;
+  /* Main actions (call, send, record) use the brand blue */
+  --color-action: #2b58f8;
+  --color-action-hover: #1d44d8;
+  /* New / not contacted: the logo's pink */
+  --color-spark: #e80f62;
+  --color-spark-soft: #fde6ef;
+  --color-avatar: #9a8cf0;
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    /* Standard Cyrillic shapes: lang="bg" otherwise swaps in italic-like д, т, и */
+    font-feature-settings: 'locl' 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* The createx.bg gradient: pink -> purple -> blue */
+@utility bg-brand {
+  background-image: linear-gradient(90deg, #e20d5b 0%, #7b3ae6 55%, #2b58f8 100%);
+}
+
+/* Their hero: blue on the left fading to pink on the right */
+@utility bg-brand-hero {
+  background-image: linear-gradient(90deg, #2b5def 0%, #6e338f 50%, #d63262 100%);
+}
+
+@utility bg-app {
+  background-image: radial-gradient(1100px 560px at 100% 0%, rgba(169, 156, 253, 0.22) 0%, transparent 60%),
+    radial-gradient(900px 500px at 0% 100%, rgba(241, 9, 95, 0.07) 0%, transparent 55%);
+}
+
+@utility label-caps {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
