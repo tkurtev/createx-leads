@@ -1,4 +1,5 @@
 import { after, NextResponse } from 'next/server';
+import { handleCallEnded } from '@/lib/agent/handle-call-ended';
 import { agentCallsEnabled } from '@/lib/agent/provider';
 import { getEnv } from '@/lib/env';
 import { dispatchNewLead } from '@/lib/intake/dispatch';
@@ -35,7 +36,15 @@ export async function POST(request: Request) {
     await store.appendLeadRow(row);
 
     const appUrl = env.APP_URL ?? new URL(request.url).origin;
-    after(() => dispatchNewLead({ env, store, lead, id, createdAt, appUrl }));
+    after(async () => {
+      const result = await dispatchNewLead({ env, store, lead, id, createdAt, appUrl });
+      // Local testing only: the fake provider hands back the conversation it pretended to have.
+      if (result.simulated) {
+        await handleCallEnded({ env, store, call: result.simulated }).catch((error) =>
+          console.error('[intake] simulated call failed', error),
+        );
+      }
+    });
 
     return NextResponse.json({ ok: true, id, agentCalls: agentCallsEnabled(env) });
   } catch (error) {

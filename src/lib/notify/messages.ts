@@ -1,5 +1,6 @@
+import { fullDate } from '@/lib/format';
 import { formatPhone } from '@/lib/leads/normalize';
-import { STATUS_LABELS, type LeadStatus } from '@/lib/leads/types';
+import { QUALIFICATION_LABELS, STATUS_LABELS, type CallDetails, type LeadStatus } from '@/lib/leads/types';
 import type { IntakeLead } from '@/lib/intake/schema';
 
 const escape = (value: string) =>
@@ -43,27 +44,25 @@ export function newLeadEmail(lead: IntakeLead, url: string) {
   };
 }
 
-export type CallReport = {
-  leadName: string;
-  summary: string;
-  outcome?: LeadStatus;
-  durationSec?: number;
-  recordingUrl?: string;
-};
+export type CallReport = { leadName: string; status?: LeadStatus; call: CallDetails };
 
-export function callReportEmail(report: CallReport, url: string) {
-  const minutes = report.durationSec ? `${Math.round(report.durationSec / 6) / 10} мин.` : '';
+const minutes = (seconds?: number) => (seconds ? `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')} мин.` : '');
+
+export function callReportEmail({ leadName, status, call }: CallReport, url: string) {
+  const heading = call.reached === false ? `Никой не вдигна: ${leadName}` : `AI агентът говори с ${leadName}`;
+  const rows: [string, string][] = [
+    ['Резултат', status ? STATUS_LABELS[status] : ''],
+    ['Квалификация', call.qualification && call.qualification !== 'unknown' ? QUALIFICATION_LABELS[call.qualification] : ''],
+    ['Продължителност', minutes(call.durationSec)],
+    ['Обобщение', call.summary ?? ''],
+    ['Следващи стъпки', (call.nextSteps ?? []).map((step) => `• ${step}`).join('\n')],
+    ['Да потърсим', call.callbackAt ? fullDate(call.callbackAt) : ''],
+    ...(call.facts ?? []).map((fact): [string, string] => [fact.label, fact.value]),
+    ['Запис', call.recordingUrl ?? ''],
+  ];
+
   return {
-    subject: `AI обаждане до ${report.leadName}${report.outcome ? `: ${STATUS_LABELS[report.outcome]}` : ''}`,
-    ...render(
-      `AI агентът говори с ${report.leadName}`,
-      [
-        ['Резултат', report.outcome ? STATUS_LABELS[report.outcome] : ''],
-        ['Продължителност', minutes],
-        ['Обобщение', report.summary],
-        ['Запис', report.recordingUrl ?? ''],
-      ],
-      { href: url, label: 'Виж транскрипцията' },
-    ),
+    subject: `${call.reached === false ? 'Няма връзка с' : 'AI обаждане до'} ${leadName}${status ? `: ${STATUS_LABELS[status]}` : ''}`,
+    ...render(heading, rows, { href: url, label: call.transcript?.length ? 'Виж транскрипцията' : 'Отвори лийда' }),
   };
 }

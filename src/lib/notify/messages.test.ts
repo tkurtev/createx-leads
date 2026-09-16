@@ -12,12 +12,45 @@ describe('notification emails', () => {
     expect(email.text).not.toContain('Имейл');
   });
 
-  it('summarises a call with its outcome and length', () => {
+  it('summarises a call with its outcome, qualification and what was learned', () => {
     const email = callReportEmail(
-      { leadName: 'Иван', summary: 'Иска оглед в събота', outcome: 'booked', durationSec: 95 },
+      {
+        leadName: 'Иван',
+        status: 'booked',
+        call: {
+          provider: 'vapi',
+          state: 'ended',
+          reached: true,
+          durationSec: 95,
+          summary: 'Уговорена среща за четвъртък.',
+          qualification: 'hot',
+          nextSteps: ['Изпрати оферта по имейл'],
+          facts: [{ label: 'Бюджет', value: 'до 5000 лв' }],
+          transcript: [{ role: 'agent', text: 'Добър ден' }],
+        },
+      },
       'https://app.test/?lead=l_1',
     );
     expect(email.subject).toBe('AI обаждане до Иван: Записан');
-    expect(email.text).toContain('Продължителност: 1.6 мин.');
+    expect(email.text).toContain('Продължителност: 1:35 мин.');
+    expect(email.text).toContain('Квалификация: Горещ');
+    expect(email.text).toContain('• Изпрати оферта по имейл');
+    expect(email.text).toContain('Бюджет: до 5000 лв');
+    expect(email.text).toContain('Виж транскрипцията');
+  });
+
+  it('says plainly when nobody picked up', () => {
+    const email = callReportEmail(
+      {
+        leadName: 'Иван',
+        status: 'no_answer',
+        call: { provider: 'vapi', state: 'ended', reached: false, summary: 'Клиентът не вдигна', qualification: 'unknown' },
+      },
+      'https://app.test/?lead=l_1',
+    );
+    expect(email.subject).toBe('Няма връзка с Иван: Не вдига');
+    expect(email.text).toContain('Клиентът не вдигна');
+    expect(email.text).not.toContain('Квалификация');
+    expect(email.text).toContain('Отвори лийда');
   });
 });

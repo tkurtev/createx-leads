@@ -1,0 +1,46 @@
+{
+  "message": {
+    "type": "end-of-call-report",
+    "endedReason": "customer-ended-call",
+    "startedAt": "2026-09-16T09:12:04.000Z",
+    "endedAt": "2026-09-16T09:13:39.000Z",
+    "cost": 0.42,
+    "call": {
+      "id": "b6f0b6ce-0000-4a2f-9f11-demo00000001",
+      "status": "ended",
+      "assistantOverrides": {
+        "metadata": {
+          "leadId": "REPLACE_WITH_LEAD_ID",
+          "leadName": "Мария Тестова",
+          "source": "форма",
+          "app": "createx-leads"
+        }
+      }
+    },
+    "customer": { "number": "+359888111222", "name": "Мария Тестова" },
+    "artifact": {
+      "recordingUrl": "https://storage.vapi.ai/demo-recording.mp3",
+      "messages": [
+        { "role": "system", "message": "Ти си асистент...", "secondsFromStart": 0 },
+        { "role": "bot", "message": "Добър ден, обаждам се заради запитването ви от сайта. Аз съм асистент. Удобно ли е да говорим две минути?", "secondsFromStart": 0.5 },
+        { "role": "user", "message": "Да, удобно е.", "secondsFromStart": 7.1 },
+        { "role": "bot", "message": "Благодаря. Да уточня какво точно търсите?", "secondsFromStart": 9.4 },
+        { "role": "user", "message": "Искам оферта за десет работни места. Бюджетът ни е около пет хиляди лева на месец.", "secondsFromStart": 13.2 },
+        { "role": "bot", "message": "Разбрах. До кога ви трябва решение?", "secondsFromStart": 22.8 },
+        { "role": "user", "message": "До края на месеца. Аз решавам, но искам да го видя на хартия.", "secondsFromStart": 26.5 },
+        { "role": "bot", "message": "Кога ви е удобно колега да ви звънне с конкретна оферта?", "secondsFromStart": 35.0 },
+        { "role": "user", "message": "В четвъртък след пет следобед. И ми пратете нещо на имейл дотогава.", "secondsFromStart": 40.2 },
+        { "role": "bot", "message": "Записах: оферта по имейл и обаждане в четвъртък след 17:00. Приятен ден!", "secondsFromStart": 48.9 },
+        { "role": "user", "message": "Благодаря, дочуване.", "secondsFromStart": 55.0 }
+      ]
+    },
+    "analysis": {
+      "summary": "Клиентът иска оферта за десет работни места, с бюджет около 5000 лв на месец, и обаждане в четвъртък след 17:00.",
+      "structuredData": {
+        "budget": "около 5000 лв на месец",
+        "decisionMaker": true,
+        "seats": 10
+      }
+    }
+  }
+}

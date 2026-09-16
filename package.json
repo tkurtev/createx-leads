@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.126.0",
     "@vercel/blob": "2.8.0",
     "clsx": "^2.1.1",
     "google-auth-library": "^11.0.2",
