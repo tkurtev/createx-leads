@@ -1,12 +1,13 @@
 'use client';
 
-import { History, Mail, MessageSquare, Mic, PhoneCall } from 'lucide-react';
+import { Bot, History, Mail, MessageSquare, Mic, PhoneCall } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { fullDate, relativeTime } from '@/lib/format';
 import { teamFeed, type FeedFilter } from '@/lib/leads/feed';
 import type { LeadWithActivity } from '@/lib/leads/status';
 import { activitySummary } from '../../leads/activity-summary';
+import { QualificationTag } from '../../leads/call-card';
 import { VoicePlayer } from '../../voice/voice-player';
 
 const FILTERS: { id: FeedFilter; label: string }[] = [
@@ -57,7 +58,7 @@ export function ActivityView({ leads, onSelect }: Props) {
       ) : (
         <ol className="divide-y divide-border">
           {items.map(({ activity, lead }) => {
-            const Icon = ICONS[activity.type];
+            const Icon = activity.call ? Bot : ICONS[activity.type];
             return (
               <li key={activity.id} className="flex gap-3 px-4 py-3.5">
                 <span
@@ -80,11 +81,14 @@ export function ActivityView({ leads, onSelect }: Props) {
                       {lead.name}
                     </button>
                   </p>
-                  <p className="mt-0.5 text-sm">
+                  <p className="mt-0.5 flex flex-wrap items-center gap-2 text-sm">
                     {activity.type === 'comment' ? (
                       <span className="line-clamp-3 whitespace-pre-wrap">{activity.text}</span>
                     ) : (
                       activitySummary(activity)
+                    )}
+                    {activity.call?.qualification && activity.call.qualification !== 'unknown' && (
+                      <QualificationTag value={activity.call.qualification} />
                     )}
                   </p>
                   {activity.type === 'call' && activity.text && (

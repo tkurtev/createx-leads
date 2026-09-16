@@ -214,6 +214,7 @@ export function LeadsApp({ userName }: { userName: string }) {
               userName={userName}
               emailEnabled={state.emailEnabled}
               voiceEnabled={state.voiceEnabled}
+              agentName={state.agentName}
               sheetUrl={state.sheetUrl}
               onBack={() => setSelectedId(null)}
               onActivity={state.addActivity}

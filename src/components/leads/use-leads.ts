@@ -14,6 +14,8 @@ type LeadsResponse = {
   emailTestMode: boolean;
   demo: boolean;
   voiceEnabled: boolean;
+  agentName: string;
+  agentCalls: boolean;
   sheetUrl: string | null;
   fetchedAt: string;
 };
@@ -131,6 +133,8 @@ export function useLeads() {
     emailTestMode: data?.emailTestMode ?? false,
     demo: data?.demo ?? false,
     voiceEnabled: data?.voiceEnabled ?? false,
+    agentName: data?.agentName ?? 'AI агент',
+    agentCalls: data?.agentCalls ?? false,
     sheetUrl: data?.sheetUrl ?? null,
     fetchedAt: data?.fetchedAt ?? null,
     error,

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { agentCallsEnabled } from '@/lib/agent/provider';
 import { errorResponse } from '@/lib/api';
 import { getEnv } from '@/lib/env';
 import { parseLeads } from '@/lib/leads/parse';
@@ -18,6 +19,8 @@ export async function GET() {
       emailTestMode: env.EMAIL_TRANSPORT === 'log',
       demo: env.DATA_SOURCE !== 'sheets',
       voiceEnabled: getAudioStore() !== null,
+      agentName: env.AGENT_NAME,
+      agentCalls: agentCallsEnabled(env),
       sheetUrl: env.SPREADSHEET_ID ? `https://docs.google.com/spreadsheets/d/${env.SPREADSHEET_ID}/edit` : null,
       fetchedAt: new Date().toISOString(),
     });

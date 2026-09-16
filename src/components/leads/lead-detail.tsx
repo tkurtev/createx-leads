@@ -18,11 +18,13 @@ import {
 import { useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { durationSince, fullDate, relativeTime } from '@/lib/format';
+import { latestCall } from '@/lib/leads/calls';
 import { formatPhone, viberLink, whatsappLink } from '@/lib/leads/normalize';
 import { lastActivity, statusSince, type LeadWithActivity } from '@/lib/leads/status';
 import { STATUSES, STATUS_LABELS, type Activity, type LeadStatus } from '@/lib/leads/types';
 import { ActivityFeed } from './activity-feed';
 import { activitySummary } from './activity-summary';
+import { CallCard } from './call-card';
 import { CallOutcome } from './call-outcome';
 import { CommentComposer } from './comment-composer';
 import { EmailComposer } from './email-composer';
@@ -34,6 +36,7 @@ type Props = {
   userName: string;
   emailEnabled: boolean;
   voiceEnabled: boolean;
+  agentName: string;
   sheetUrl: string | null;
   onBack: () => void;
   onActivity: (activity: Activity) => void;
@@ -58,7 +61,7 @@ function Field({ label, children, aside }: { label: string; children: React.Reac
   );
 }
 
-export function LeadDetail({ lead, userName, emailEnabled, voiceEnabled, sheetUrl, onBack, onActivity }: Props) {
+export function LeadDetail({ lead, userName, emailEnabled, voiceEnabled, agentName, sheetUrl, onBack, onActivity }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
   const [showOutcome, setShowOutcome] = useState(false);
   const [composing, setComposing] = useState(false);
@@ -68,6 +71,7 @@ export function LeadDetail({ lead, userName, emailEnabled, voiceEnabled, sheetUr
   const commentRef = useRef<HTMLTextAreaElement>(null);
 
   const latest = lastActivity(lead.activity);
+  const aiCall = latestCall(lead.activity);
   const inStatusFor = durationSince(statusSince(lead, lead.activity));
   const historyCount = lead.activity.length + (lead.sheetNotes.length > 0 ? 1 : 0);
 
@@ -195,6 +199,8 @@ export function LeadDetail({ lead, userName, emailEnabled, voiceEnabled, sheetUr
 
         {tab === 'overview' && (
           <>
+            {aiCall && <CallCard activity={aiCall} agentName={agentName} />}
+
             <button
               type="button"
               onClick={() => setTab('history')}
@@ -287,7 +293,7 @@ export function LeadDetail({ lead, userName, emailEnabled, voiceEnabled, sheetUr
 
         {tab === 'history' && (
           <div className="rounded-2xl bg-surface p-4 shadow-[0_1px_3px_rgba(27,29,42,0.06)] sm:p-5">
-            <ActivityFeed activity={lead.activity} sheetNotes={lead.sheetNotes} />
+            <ActivityFeed activity={lead.activity} sheetNotes={lead.sheetNotes} agentName={agentName} />
           </div>
         )}
       </div>

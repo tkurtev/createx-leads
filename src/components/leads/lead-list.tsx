@@ -1,11 +1,13 @@
 'use client';
 
-import { CornerDownRight, History } from 'lucide-react';
+import { Bot, CornerDownRight, History } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { relativeTime } from '@/lib/format';
+import { lastFinishedCall, pendingCall } from '@/lib/leads/calls';
 import { lastActivity, type LeadWithActivity } from '@/lib/leads/status';
 import { activitySummary } from './activity-summary';
 import { LeadAvatar } from './avatar';
+import { QualificationTag } from './call-card';
 import { StatusTag } from './status-badge';
 
 type Props = {
@@ -27,6 +29,8 @@ export function LeadList({ leads, selectedId, unseen, onSelect }: Props) {
         const isSelected = lead.id === selectedId;
         const latest = lastActivity(lead.activity);
         const preview = lead.answers[0]?.answer ?? lead.sheetNotes[0];
+        const ringing = pendingCall(lead.activity);
+        const qualification = ringing ? null : lastFinishedCall(lead.activity)?.call.qualification;
 
         return (
           <li key={lead.id}>
@@ -65,9 +69,16 @@ export function LeadList({ leads, selectedId, unseen, onSelect }: Props) {
                     </>
                   )}
                 </p>
-                {lead.status !== 'new' && (
-                  <div className="mt-1.5 flex">
-                    <StatusTag status={lead.status} />
+                {(lead.status !== 'new' || ringing || qualification) && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {lead.status !== 'new' && <StatusTag status={lead.status} />}
+                    {ringing && (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-[3px] bg-action px-1.5 py-0.5 text-[11px] leading-tight font-medium text-white">
+                        <Bot className="size-3" aria-hidden />
+                        AI звъни
+                      </span>
+                    )}
+                    {qualification && qualification !== 'unknown' && <QualificationTag value={qualification} />}
                   </div>
                 )}
               </div>
