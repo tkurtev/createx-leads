@@ -77,7 +77,9 @@ const schema = z
       ctx.addIssue({ code: 'custom', path: ['NOTIFY_EMAIL_TO'], message: 'на кого да пращаме известията за нови лийдове' });
     }
     if (env.CALL_PROVIDER === 'vapi') {
-      for (const key of ['VAPI_API_KEY', 'VAPI_ASSISTANT_ID', 'VAPI_PHONE_NUMBER_ID'] as const) {
+      // The secret is as necessary as the keys: without it the webhook rejects every
+      // report, so the calls would go out and their results would never come back.
+      for (const key of ['VAPI_API_KEY', 'VAPI_ASSISTANT_ID', 'VAPI_PHONE_NUMBER_ID', 'VAPI_WEBHOOK_SECRET'] as const) {
         if (!env[key]) ctx.addIssue({ code: 'custom', path: [key], message: `${key} липсва` });
       }
     }
