@@ -58,9 +58,11 @@ keeps the old behaviour, so an existing deployment is unaffected.
 2. **Number**: Vapi hands out US numbers for free; a Bulgarian number gets answered far
    more often. Import one from Twilio (a Bulgarian regulatory bundle is required) or use a
    SIP trunk, then copy the ID into `VAPI_PHONE_NUMBER_ID`.
-3. **Server URL**: on the assistant, set it to `https://<your-app>/api/agent/vapi` and set
-   the server secret to the same value as `VAPI_WEBHOOK_SECRET`. Vapi sends it back as the
-   `x-vapi-secret` header, and a request without it is rejected.
+3. **Server URL**: on the assistant, set it to `https://<your-app>/api/agent/vapi`. Under
+   **HTTP Headers** on the same screen, add one header named exactly `x-vapi-secret` whose
+   value is `VAPI_WEBHOOK_SECRET`. The name matters: a header called anything else is not
+   read, and the request is rejected with `401`. (`Authorization: Bearer <secret>` is
+   accepted too, if you would rather use that.)
 4. **Server messages**: keep `end-of-call-report` switched on - it is the only one the app
    reads. Switch on recording if you want the recording to play inside the app.
 5. **Analysis** (optional, in Vapi): anything you configure it to extract shows up on the
